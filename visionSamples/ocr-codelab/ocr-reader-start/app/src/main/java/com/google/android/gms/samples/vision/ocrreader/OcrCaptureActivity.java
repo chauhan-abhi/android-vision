@@ -114,6 +114,20 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 .show();
 
         // TODO: Set up the Text To Speech engine.
+        TextToSpeech.OnInitListener listener =
+                new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(final int status) {
+                        if (status == TextToSpeech.SUCCESS) {
+                            Log.d("TTS", "Text to speech engine started successfully.");
+                            tts.setLanguage(Locale.US);
+                        } else {
+                            Log.d("TTS", "Error starting the text to speech engine.");
+                        }
+                    }
+                };
+        tts = new TextToSpeech(this.getApplicationContext(), listener);
+
     }
 
     /**
@@ -319,8 +333,23 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      * @return true if the tap was on a TextBlock
      */
     private boolean onTap(float rawX, float rawY) {
-        // TODO: Speak the text when the user taps on screen.
-        return false;
+        OcrGraphic graphic = mGraphicOverlay.getGraphicAtLocation(rawX, rawY);
+        TextBlock text = null;
+        if (graphic != null) {
+            text = graphic.getTextBlock();
+            if (text != null && text.getValue() != null) {
+                Log.d(TAG, "text data is being spoken! " + text.getValue());
+                // TODO: Speak the string.
+                tts.speak(text.getValue(), TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+            }
+            else {
+                Log.d(TAG, "text data is null");
+            }
+        }
+        else {
+            Log.d(TAG,"no text detected");
+        }
+        return text != null;
     }
 
     private class CaptureGestureListener extends GestureDetector.SimpleOnGestureListener {
